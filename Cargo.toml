@@ -1,0 +1,22 @@
+[package]
+name = "ferrite_signer"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "ferrite"
+crate-type = ["cdylib"]
+
+[dependencies]
+# PyO3 for Python bindings
+pyo3 = { version = "0.20", features = ["extension-module"] }
+
+# Ethers for battle-tested Ethereum primitives
+ethers-core = "2.0.10"
+ethers-signers = "2.0.10"
+
+# Hex for string-to-bytes conversion
+hex = "0.4.3"
+
+# Tokio for running async functions
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }

@@ -1,0 +1,67 @@
+# .github/workflows/build_wheels.yml
+name: Build Wheels and Deploy to PyPI
+
+on:
+  push:
+    tags:
+      - 'v*' # Trigger on tags like v0.1.0
+
+jobs:
+  build_wheels:
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build wheels
+        uses: PyO3/maturin-action@v1
+        with:
+          # Build for multiple architectures on macOS and Linux
+          target: ${{ matrix.os == 'macos-latest' && 'aarch64' || '' }}
+          args: --release --out dist
+          sccache: 'true'
+          manylinux: auto
+
+      - name: Upload wheels
+        uses: actions/upload-artifact@v3
+        with:
+          name: wheels
+          path: dist
+
+  publish_to_pypi:
+    name: Publish to PyPI
+    needs: [build_wheels]
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/ferrite-signer
+    permissions:
+      id-token: write # For trusted publishing
+
+    steps:
+      - name: Download all wheels
+        uses: actions/download-artifact@v3
+        with:
+          name: wheels
+          path: dist
+
+      - name: Publish to PyPI
+        uses: PyO3/maturin-action@v1
+        with:
+          command: upload
+          args: --non-interactive dist/*
+        env:
+          # Use trusted publishing instead of a raw token
+          MATURIN_PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
