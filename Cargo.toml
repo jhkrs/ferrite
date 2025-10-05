@@ -4,8 +4,9 @@ version = "0.1.0"
 edition = "2021"
 
 [lib]
-name = "ferrite"
+name = "_ferrite"
 crate-type = ["cdylib"]
+path = "ferrite/lib.rs"
 
 [dependencies]
 # PyO3 for Python bindings
