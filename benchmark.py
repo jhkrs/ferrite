@@ -1,173 +1,87 @@
-#!/usr/bin/env python3
-"""
-Performance benchmark script for Ferrite Signer.
 
-This script compares the performance of Ferrite's Rust-based signing
-implementation against the standard eth-account library.
-"""
 
 import time
-import statistics
-from typing import List, Tuple
-
+import numpy as np
 from eth_account import Account
+from eth_account.account import LocalAccount
 from eth_account.messages import encode_defunct
 import ferrite
 
+# --- Configuration ---
+NUM_SAMPLES = 1000
+WARMUP_RUNS = 100
+KEY = "0x0000000000000000000000000000000000000000000000000000000000000001"
+MESSAGE = encode_defunct(text="The quick brown fox jumps over the lazy dog")
+MESSAGE_HASH = Account.sign_message(MESSAGE, KEY).message_hash
 
-def calculate_percentiles(data: List[float], percentiles: List[float]) -> dict:
-    """Calculate specified percentiles from timing data."""
-    sorted_data = sorted(data)
-    n = len(sorted_data)
+# --- Benchmark Setup ---
 
-    results = {}
-    for p in percentiles:
-        if n == 0:
-            results[p] = 0.0
-            continue
+def get_original_signer():
+    """
+    Temporarily unpatch to get the original signing method.
+    """
+    import eth_account.account
+    return eth_account.account.LocalAccount._sign_hash
 
-        # Calculate percentile index
-        index = (p / 100) * (n - 1)
+def benchmark_function(func, *args):
+    """Measures execution time of a function."""
+    start = time.perf_counter()
+    func(*args)
+    end = time.perf_counter()
+    return (end - start) * 1000  # Return time in milliseconds
 
-        if index.is_integer():
-            # Exact index
-            results[p] = sorted_data[int(index)]
-        else:
-            # Interpolate between two values
-            lower_index = int(index)
-            upper_index = lower_index + 1
-            weight = index - lower_index
+def run_bench(name, target_func, *args):
+    """Run warmup and sample collection for a given function."""
+    print(f"\nRunning benchmark for: {name}")
 
-            lower_value = sorted_data[lower_index]
-            upper_value = sorted_data[upper_index]
+    # Warm-up runs
+    for _ in range(WARMUP_RUNS):
+        target_func(*args)
 
-            results[p] = lower_value + (weight * (upper_value - lower_value))
+    # Collect samples
+    timings = [benchmark_function(target_func, *args) for _ in range(NUM_SAMPLES)]
 
-    return results
+    p50 = np.percentile(timings, 50)
+    p95 = np.percentile(timings, 95)
+    p99 = np.percentile(timings, 99)
 
+    print(f"  P50 (Median): {p50:.4f} ms")
+    print(f"  P95: {p95:.4f} ms")
+    print(f"  P99: {p99:.4f} ms")
 
-def benchmark_standard_signing(num_iterations: int = 100) -> List[float]:
-    """Benchmark standard eth-account signing performance."""
-    times = []
+    return {"p50": p50, "p95": p95, "p99": p99}
 
-    for _ in range(num_iterations):
-        # Create a test private key (not for production use)
-        private_key = "0x" + "0" * 63 + "1"
+def benchmark_sign_hash(message_hash, private_key):
+    """Benchmark function for signHash operation."""
+    return Account._sign_hash(message_hash, private_key)
 
-        # Create a test message
-        message = encode_defunct(text="Test message for benchmarking")
-
-        # Measure signing time
-        start_time = time.perf_counter()
-        signed = Account.sign_message(message, private_key)
-        end_time = time.perf_counter()
-
-        times.append(end_time - start_time)
-        # Ensure signature is valid (consume the result to avoid optimization)
-        assert signed.signature.hex()
-
-    return times
-
-
-def benchmark_ferrite_signing(num_iterations: int = 100) -> List[float]:
-    """Benchmark Ferrite's optimized signing performance."""
-    times = []
-
-    for _ in range(num_iterations):
-        # Create a test private key (not for production use)
-        private_key = "0x" + "0" * 63 + "1"
-
-        # Create a test message
-        message = encode_defunct(text="Test message for benchmarking")
-
-        # Measure signing time
-        start_time = time.perf_counter()
-        signed = Account.sign_message(message, private_key)
-        end_time = time.perf_counter()
-
-        times.append(end_time - start_time)
-        # Ensure signature is valid (consume the result to avoid optimization)
-        assert signed.signature.hex()
-
-    return times
-
-
-def main():
-    """Run performance benchmarks and display results."""
-    print("Ethereum Signing Performance Benchmark")
-    print("=" * 50)
-    print("Comparing standard Python eth-account vs Rust-accelerated implementation")
-    print()
-
-    num_iterations = 1000
-    print(f"Running {num_iterations} iterations for each test...\n")
-
-    # Run benchmarks
-    print("Running standard Python eth-account benchmark...")
-    standard_times = benchmark_standard_signing(num_iterations)
-
-    print("Running Rust-compiled Python extension benchmark...")
-    rust_times = benchmark_ferrite_signing(num_iterations)
-
-    # Calculate statistics
-    standard_stats = {
-        'mean': statistics.mean(standard_times),
-        'median': statistics.median(standard_times),
-        'min': min(standard_times),
-        'max': max(standard_times),
-        'stdev': statistics.stdev(standard_times)
-    }
-
-    rust_stats = {
-        'mean': statistics.mean(rust_times),
-        'median': statistics.median(rust_times),
-        'min': min(rust_times),
-        'max': max(rust_times),
-        'stdev': statistics.stdev(rust_times)
-    }
-
-    # Display results
-    print("\nResults:")
-    print("-" * 50)
-    print("Standard Python eth-account:")
-    print(f"  Mean execution time:   {standard_stats['mean']:.6f}s")
-    print(f"  Median execution time: {standard_stats['median']:.6f}s")
-    print(f"  Min execution time:    {standard_stats['min']:.6f}s")
-    print(f"  Max execution time:    {standard_stats['max']:.6f}s")
-    print(f"  Standard deviation:    {standard_stats['stdev']:.6f}s")
-
-    print("\nRust-compiled Python extension:")
-    print(f"  Mean execution time:   {rust_stats['mean']:.6f}s")
-    print(f"  Median execution time: {rust_stats['median']:.6f}s")
-    print(f"  Min execution time:    {rust_stats['min']:.6f}s")
-    print(f"  Max execution time:    {rust_stats['max']:.6f}s")
-    print(f"  Standard deviation:    {rust_stats['stdev']:.6f}s")
-
-    # Calculate percentile-based performance metrics
-    percentiles = [50, 95, 99]
-    standard_percentiles = calculate_percentiles(standard_times, percentiles)
-    rust_percentiles = calculate_percentiles(rust_times, percentiles)
-
-    print("\nPercentile Analysis:")
-    print("-" * 30)
-    print(f"{'Percentile'"<12"} {'Standard (s)'"<12"} {'Rust (s)'"<12"} {'Speedup'"<10"}")
-    print("-" * 50)
-
-    for p in percentiles:
-        std_p = standard_percentiles[p]
-        rust_p = rust_percentiles[p]
-        speedup = std_p / rust_p if rust_p > 0 else float('inf')
-        print("%2.0fth percentile   %12.6fs     %12.6fs     %8.1fx" % (p, std_p, rust_p, speedup))
-
-    # Calculate overall improvement based on median (p50)
-    median_improvement = standard_percentiles[50] / rust_percentiles[50]
-    print(f"\nMedian Performance Improvement: {median_improvement:.1f}x faster")
-
-    print("\nAnalysis:")
-    print(f"- P50 speedup: {(standard_percentiles[50] / rust_percentiles[50]):.1f}x faster")
-    print(f"- P95 speedup: {(standard_percentiles[95] / rust_percentiles[95]):.1f}x faster")
-    print(f"- P99 speedup: {(standard_percentiles[99] / rust_percentiles[99]):.1f}x faster")
-    print(f"- Worst-case (P99) improvement: {(standard_percentiles[99] / rust_percentiles[99]):.1f}x")
+# --- Main Execution ---
 
 if __name__ == "__main__":
-    main()
+    # 1. Benchmark original eth-account (before patching)
+    eth_account_results = run_bench(
+        "Original eth-account",
+        benchmark_sign_hash,
+        MESSAGE_HASH,
+        KEY
+    )
+
+    # 2. Benchmark ferrite-patched eth-account (after patching)
+    ferrite.install()
+    ferrite_results = run_bench(
+        "Ferrite (Rust-accelerated)",
+        benchmark_sign_hash,
+        MESSAGE_HASH,
+        KEY
+    )
+
+    # 3. Report improvements
+    print("\n--- Performance Improvements (Ferrite vs. eth-account) ---")
+
+    p50_improvement = (eth_account_results['p50'] / ferrite_results['p50'])
+    p95_improvement = (eth_account_results['p95'] / ferrite_results['p95'])
+    p99_improvement = (eth_account_results['p99'] / ferrite_results['p99'])
+
+    print(f"  P50 (Median) Improvement: {p50_improvement:.2f}x faster")
+    print(f"  P95 Improvement: {p95_improvement:.2f}x faster")
+    print(f"  P99 Improvement: {p99_improvement:.2f}x faster")

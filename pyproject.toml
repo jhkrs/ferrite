@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "ferrite"
-version = "0.1.0"
+version = "0.1.1"
 description = "High-performance Rust-based signer for web3.py."
 authors = [{name = "Joseph Kinder", email = "joseph.kinder70@gmail.com"}]
 license = "MIT"
@@ -19,12 +19,13 @@ classifiers = [
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: System :: Hardware :: Hardware Drivers",
 ]
 dependencies = [
-    "web3>=6.0.0,<7.0.0",
-    "eth-account>=0.8.0,<0.9.0"
+    "web3>=7.0.0",
+    "eth-account>=0.8.0"
 ]
 
 [project.urls]
@@ -32,4 +33,3 @@ Homepage = "https://github.com/satoshiburger/ferrite"
 Repository = "https://github.com/satoshiburger/ferrite"
 Documentation = "https://github.com/satoshiburger/ferrite/blob/main/README.md"
 Issues = "https://github.com/satoshiburger/ferrite/issues"
-Changelog = "https://github.com/satoshiburger/ferrite/blob/main/CHANGELOG.md"
