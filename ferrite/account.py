@@ -9,7 +9,7 @@ from eth_account.account import LocalAccount
 from eth_account import Account as EthAccount
 from eth_account.datastructures import SignedMessage
 from hexbytes import HexBytes
-from ._ferrite import sign_hash as rust_sign_hash  # type: ignore
+from _ferrite import sign_hash as rust_sign_hash  # type: ignore
 
 log = logging.getLogger(__name__)
 
