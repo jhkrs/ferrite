@@ -3,11 +3,13 @@ This module handles the monkey-patching of eth-account to use the Rust-based sig
 """
 
 import logging
+from typing import Any
+
 from eth_account.account import LocalAccount
 from eth_account import Account as EthAccount
 from eth_account.datastructures import SignedMessage
 from hexbytes import HexBytes
-from _ferrite import sign_hash as rust_sign_hash
+from ._ferrite import sign_hash as rust_sign_hash  # type: ignore
 
 log = logging.getLogger(__name__)
 
@@ -22,7 +24,7 @@ def _sign_hash_wrapper(self, message_hash: bytes) -> SignedMessage:
         signature_dict = rust_sign_hash(message_hash, private_key_hex)
 
         return SignedMessage(
-            message_hash=message_hash,
+            message_hash=HexBytes(message_hash),
             r=int.from_bytes(signature_dict["r"], "big"),
             s=int.from_bytes(signature_dict["s"], "big"),
             v=signature_dict["v"],
@@ -47,7 +49,7 @@ def _account_sign_hash_wrapper(message_hash: bytes, private_key: str) -> SignedM
         signature_dict = rust_sign_hash(message_hash, private_key_hex)
 
         return SignedMessage(
-            message_hash=message_hash,
+            message_hash=HexBytes(message_hash),
             r=int.from_bytes(signature_dict["r"], "big"),
             s=int.from_bytes(signature_dict["s"], "big"),
             v=signature_dict["v"],
@@ -63,8 +65,10 @@ def patch_eth_account() -> None:
     Replaces the core signing methods on LocalAccount and Account with the Rust implementation.
     """
     try:
-        LocalAccount._sign_hash = _sign_hash_wrapper
-        EthAccount._sign_hash = _account_sign_hash_wrapper
+        # Use setattr to avoid mypy errors about assigning to methods on imported types
+        setattr(LocalAccount, "_sign_hash", _sign_hash_wrapper)  # type: ignore[arg-type]
+        # eth-account's Account class may expose signHash; we adapt the function name here
+        setattr(EthAccount, "_sign_hash", _account_sign_hash_wrapper)  # type: ignore[arg-type]
         log.debug(
             "Patched LocalAccount._sign_hash and Account._sign_hash with Rust implementation"
         )

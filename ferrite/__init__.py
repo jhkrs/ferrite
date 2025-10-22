@@ -6,6 +6,8 @@ performance increase.
 """
 
 import logging
+from typing import Any, cast
+
 from eth_account import Account
 from eth_account.messages import SignableMessage
 from eth_account.datastructures import SignedMessage
@@ -52,7 +54,8 @@ def sign_message(signable_message: SignableMessage, private_key: str) -> SignedM
         The signed message.
     """
     install()
-    return Account.sign_message(signable_message, private_key)
+    # Account may be a class from eth-account that mypy doesn't model precisely; cast to Any
+    return cast(Any, Account).sign_message(signable_message, private_key)
 
 
 def sign_hash(message_hash: bytes, private_key: str) -> SignedMessage:
@@ -69,4 +72,5 @@ def sign_hash(message_hash: bytes, private_key: str) -> SignedMessage:
         The signed message.
     """
     install()
-    return Account.signHash(message_hash, private_key)
+    # eth-account exposes signHash on Account; cast to Any so mypy won't complain
+    return cast(Any, Account).signHash(message_hash, private_key)
