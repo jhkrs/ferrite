@@ -13,10 +13,11 @@ from .account import patch_eth_account
 
 log = logging.getLogger(__name__)
 
-__all__ = ['sign_message', 'sign_hash', '__version__']
+__all__ = ["sign_message", "sign_hash", "__version__"]
 __version__ = "0.1.0"
 
 _patch_applied = False
+
 
 def install() -> None:
     """
@@ -29,10 +30,13 @@ def install() -> None:
         try:
             patch_eth_account()
             _patch_applied = True
-            log.info("Successfully patched eth-account with high-performance Rust core.")
+            log.info(
+                "Successfully patched eth-account with high-performance Rust core."
+            )
         except Exception as e:
             log.error(f"Failed to patch eth-account: {e}")
             raise
+
 
 def sign_message(signable_message: SignableMessage, private_key: str) -> SignedMessage:
     """
