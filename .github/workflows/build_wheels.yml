@@ -108,21 +108,17 @@ jobs:
       name: pypi
       url: https://pypi.org/p/ferrite
     permissions:
-      id-token: write # For trusted publishing
+      id-token: write
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Download all wheels
         uses: actions/download-artifact@v4
-        with:
-          path: dist
-
-      - name: Move wheels to root dist directory
-        run: |
-          mkdir -p dist
-          find . -name "*.whl" -exec mv {} dist/ \;
 
       - name: Publish to PyPI
         uses: PyO3/maturin-action@v1
         with:
           command: upload
-          args: --non-interactive dist/*
+          args: --non-interactive **/*.whl
