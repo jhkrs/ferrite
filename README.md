@@ -1,9 +1,8 @@
 # Ferrite: High-performance eth-account signer
 
-[![PyPI version](https://badge.fury.io/py/ferrite.svg)](https://badge.fury.io/py/ferrite)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![PyPI version](https://img.shields.io/pypi/v/ferrite)](https://pypi.org/project/ferrite)[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python Versions](https://img.shields.io/pypi/pyversions/ferrite.svg)](https://pypi.org/project/ferrite/)
-[![Build Status](https://img.shields.io/github/actions/workflow/status/satoshiburger/ferrite/build_wheels.yml)](https://github.com/satoshiburger/ferrite/actions)
+[![Build Status](https://github.com/satoshiburger/ferrite/actions/workflows/build-and-publish.yml.svg)](https://github.com/satoshiburger/ferrite/actions)
 
 **High-performance Rust-based signer for eth-account**
 
