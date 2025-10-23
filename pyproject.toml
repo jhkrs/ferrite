@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "ferrite"
-version = "0.1.9"
+version = "0.1.10"
 description = "High-performance Rust-based signer for web3.py."
 authors = [{name = "Joseph Kinder", email = "joseph.kinder70@gmail.com"}]
 license = "MIT"
@@ -35,7 +35,7 @@ Documentation = "https://github.com/satoshiburger/ferrite/blob/main/README.md"
 Issues = "https://github.com/satoshiburger/ferrite/issues"
 
 [tool.bumpversion]
-current_version = "0.1.9" 
+current_version = "0.1.10" 
 
 commit = true 
 
