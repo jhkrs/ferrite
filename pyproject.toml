@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "ferrite"
-version = "0.1.1"
+version = "0.1.9"
 description = "High-performance Rust-based signer for web3.py."
 authors = [{name = "Joseph Kinder", email = "joseph.kinder70@gmail.com"}]
 license = "MIT"
