@@ -15,7 +15,7 @@ from .account import patch_eth_account
 
 log = logging.getLogger(__name__)
 
-__all__ = ["sign_message", "sign_hash", "__version__"]
+__all__ = ["sign_message", "sign_hash", "sign_typed_data", "__version__"]
 __version__ = "0.1.0"
 
 _patch_applied = False
@@ -54,7 +54,6 @@ def sign_message(signable_message: SignableMessage, private_key: str) -> SignedM
         The signed message.
     """
     install()
-    # Account may be a class from eth-account that mypy doesn't model precisely; cast to Any
     return cast(Any, Account).sign_message(signable_message, private_key)
 
 
@@ -72,5 +71,19 @@ def sign_hash(message_hash: bytes, private_key: str) -> SignedMessage:
         The signed message.
     """
     install()
-    # eth-account exposes signHash on Account; cast to Any so mypy won't complain
     return cast(Any, Account).signHash(message_hash, private_key)
+
+
+def sign_typed_data(full_message: Any, private_key: str) -> SignedMessage:
+    """
+    Sign an EIP-712 typed data message with the high-performance Rust backend.
+
+    Args:
+        full_message: The EIP-712 typed data message (dictionary).
+        private_key: The private key as a hex string.
+
+    Returns:
+        The signed message.
+    """
+    install()
+    return cast(Any, Account).sign_typed_data(private_key, full_message)

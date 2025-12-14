@@ -550,6 +550,8 @@ dependencies = [
  "ethers-signers",
  "hex",
  "pyo3",
+ "serde",
+ "serde_json",
  "tokio",
 ]
 
