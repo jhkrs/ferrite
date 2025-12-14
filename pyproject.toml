@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "ferrite"
-version = "0.2.0"
+version = "0.2.1"
 description = "High-performance Rust patch for Python eth-account"
 authors = [{name = "Joseph Kinder", email = "joseph.kinder70@gmail.com"}]
 license = "MIT"
@@ -34,17 +34,17 @@ Documentation = "https://github.com/satoshiburger/ferrite/blob/main/README.md"
 Issues = "https://github.com/satoshiburger/ferrite/issues"
 
 [tool.bumpversion]
-current_version = "0.2.0"
+current_version = "0.2.1"
 
-commit = true
-
-tag = true
-
-commit_message = "build: Bump version to {new_version}"
-tag_name = "v{new_version}"
+commit = false
+tag = false
 
 [[tool.bumpversion.files]]
 filename = "pyproject.toml"
+search = 'version = "{current_version}"'
+replace = 'version = "{new_version}"'
 
+[[tool.bumpversion.files]]
+filename = "Cargo.toml"
 search = 'version = "{current_version}"'
 replace = 'version = "{new_version}"'
