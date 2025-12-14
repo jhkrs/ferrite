@@ -2,14 +2,16 @@
 This module handles the monkey-patching of eth-account to use the Rust-based signer.
 """
 
+import json
 import logging
-from typing import Any
+from typing import Any, Dict
 
 from eth_account.account import LocalAccount
 from eth_account import Account as EthAccount
 from eth_account.datastructures import SignedMessage
 from hexbytes import HexBytes
 from _ferrite import sign_hash as rust_sign_hash  # type: ignore
+from _ferrite import sign_typed_data as rust_sign_typed_data  # type: ignore
 
 log = logging.getLogger(__name__)
 
@@ -60,15 +62,66 @@ def _account_sign_hash_wrapper(message_hash: bytes, private_key: str) -> SignedM
         raise
 
 
+def _sign_typed_data_wrapper(self, full_message: Dict[str, Any]) -> SignedMessage:
+    """Wraps the Rust-based sign_typed_data function for LocalAccount."""
+    try:
+        private_key_hex = self.key.hex()
+        if not private_key_hex.startswith("0x"):
+            private_key_hex = "0x" + private_key_hex
+
+        json_payload = json.dumps(full_message)
+        signature_dict = rust_sign_typed_data(json_payload, private_key_hex)
+
+        return SignedMessage(
+            message_hash=HexBytes(b""),
+            r=int.from_bytes(signature_dict["r"], "big"),
+            s=int.from_bytes(signature_dict["s"], "big"),
+            v=signature_dict["v"],
+            signature=HexBytes(signature_dict["signature"]),
+        )
+    except Exception as e:
+        log.error(f"Error in Rust typed data signing operation: {e}")
+        raise
+
+
+def _account_sign_typed_data_wrapper(
+    private_key: str, full_message: Dict[str, Any]
+) -> SignedMessage:
+    """Wraps the Rust-based sign_typed_data function for Account."""
+    try:
+        if isinstance(private_key, (bytes, bytearray)):
+            private_key_hex = private_key.hex()
+        else:
+            private_key_hex = str(private_key)
+
+        if not private_key_hex.startswith("0x"):
+            private_key_hex = "0x" + private_key_hex
+
+        json_payload = json.dumps(full_message)
+        signature_dict = rust_sign_typed_data(json_payload, private_key_hex)
+
+        return SignedMessage(
+            message_hash=HexBytes(b""),
+            r=int.from_bytes(signature_dict["r"], "big"),
+            s=int.from_bytes(signature_dict["s"], "big"),
+            v=signature_dict["v"],
+            signature=HexBytes(signature_dict["signature"]),
+        )
+    except Exception as e:
+        log.error(f"Error in Rust typed data signing operation (Account adapter): {e}")
+        raise
+
+
 def patch_eth_account() -> None:
     """
     Replaces the core signing methods on LocalAccount and Account with the Rust implementation.
     """
     try:
-        # Use setattr to avoid mypy errors about assigning to methods on imported types
-        setattr(LocalAccount, "_sign_hash", _sign_hash_wrapper)  # type: ignore[arg-type]
-        # eth-account's Account class may expose signHash; we adapt the function name here
-        setattr(EthAccount, "_sign_hash", _account_sign_hash_wrapper)  # type: ignore[arg-type]
+        setattr(LocalAccount, "_sign_hash", _sign_hash_wrapper)
+        setattr(EthAccount, "_sign_hash", _account_sign_hash_wrapper)
+
+        setattr(LocalAccount, "sign_typed_data", _sign_typed_data_wrapper)
+        setattr(EthAccount, "sign_typed_data", _account_sign_typed_data_wrapper)
         log.debug(
             "Patched LocalAccount._sign_hash and Account._sign_hash with Rust implementation"
         )

@@ -4,8 +4,8 @@ build-backend = "maturin"
 
 [project]
 name = "ferrite"
-version = "0.1.10"
-description = "High-performance Rust-based signer for web3.py."
+version = "0.2.2"
+description = "High-performance Rust patch for Python eth-account"
 authors = [{name = "Joseph Kinder", email = "joseph.kinder70@gmail.com"}]
 license = "MIT"
 readme = "README.md"
@@ -24,7 +24,6 @@ classifiers = [
     "Topic :: System :: Hardware :: Hardware Drivers",
 ]
 dependencies = [
-    "web3>=7.0.0",
     "eth-account>=0.8.0"
 ]
 
@@ -35,17 +34,18 @@ Documentation = "https://github.com/satoshiburger/ferrite/blob/main/README.md"
 Issues = "https://github.com/satoshiburger/ferrite/issues"
 
 [tool.bumpversion]
-current_version = "0.1.10" 
+current_version = "0.2.2"
 
-commit = true 
-
-tag = true 
-
-commit_message = "build: Bump version to {new_version}"
-tag_name = "v{new_version}"
+commit = true
+commit_args = "--no-verify"
+tag = false
 
 [[tool.bumpversion.files]]
 filename = "pyproject.toml"
+search = 'version = "{current_version}"'
+replace = 'version = "{new_version}"'
 
+[[tool.bumpversion.files]]
+filename = "Cargo.toml"
 search = 'version = "{current_version}"'
 replace = 'version = "{new_version}"'
