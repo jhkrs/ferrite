@@ -12,6 +12,38 @@ KEY = "0x0000000000000000000000000000000000000000000000000000000000000001"
 MESSAGE = encode_defunct(text="The quick brown fox jumps over the lazy dog")
 MESSAGE_HASH = Account.sign_message(MESSAGE, KEY).message_hash
 
+EIP712_EXAMPLE = {
+    "types": {
+        "EIP712Domain": [
+            {"name": "name", "type": "string"},
+            {"name": "version", "type": "string"},
+            {"name": "chainId", "type": "uint256"},
+            {"name": "verifyingContract", "type": "address"},
+        ],
+        "Person": [
+            {"name": "name", "type": "string"},
+            {"name": "wallet", "type": "address"},
+        ],
+        "Mail": [
+            {"name": "from", "type": "Person"},
+            {"name": "to", "type": "Person"},
+            {"name": "contents", "type": "string"},
+        ],
+    },
+    "primaryType": "Mail",
+    "domain": {
+        "name": "Ether Mail",
+        "version": "1",
+        "chainId": 1,
+        "verifyingContract": "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC",
+    },
+    "message": {
+        "from": {"name": "Cow", "wallet": "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"},
+        "to": {"name": "Bob", "wallet": "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"},
+        "contents": "Hello, Bob!",
+    },
+}
+
 # --- Benchmark Setup ---
 
 
@@ -59,6 +91,11 @@ def benchmark_sign_hash(message_hash, private_key):
     return Account._sign_hash(message_hash, private_key)
 
 
+def benchmark_sign_typed_data(data, private_key):
+    """Benchmark function for sign_typed_data operation."""
+    return Account.sign_typed_data(private_key, full_message=data)
+
+
 # --- Main Execution ---
 
 if __name__ == "__main__":
@@ -66,11 +103,20 @@ if __name__ == "__main__":
     eth_account_results = run_bench(
         "Original eth-account", benchmark_sign_hash, MESSAGE_HASH, KEY
     )
+    eth_account_eip712_results = run_bench(
+        "Original eth-account (EIP-712)", benchmark_sign_typed_data, EIP712_EXAMPLE, KEY
+    )
 
     # 2. Benchmark ferrite-patched eth-account (after patching)
     ferrite.install()
     ferrite_results = run_bench(
         "Ferrite (Rust-accelerated)", benchmark_sign_hash, MESSAGE_HASH, KEY
+    )
+    ferrite_eip712_results = run_bench(
+        "Ferrite (Rust-accelerated) (EIP-712)",
+        benchmark_sign_typed_data,
+        EIP712_EXAMPLE,
+        KEY,
     )
 
     # 3. Report improvements
@@ -83,3 +129,18 @@ if __name__ == "__main__":
     print(f"  P50 (Median) Improvement: {p50_improvement:.2f}x faster")
     print(f"  P95 Improvement: {p95_improvement:.2f}x faster")
     print(f"  P99 Improvement: {p99_improvement:.2f}x faster")
+
+    print("\n--- Performance Improvements (EIP-712) ---")
+    p50_eip712_improvement = (
+        eth_account_eip712_results["p50"] / ferrite_eip712_results["p50"]
+    )
+    p95_eip712_improvement = (
+        eth_account_eip712_results["p95"] / ferrite_eip712_results["p95"]
+    )
+    p99_eip712_improvement = (
+        eth_account_eip712_results["p99"] / ferrite_eip712_results["p99"]
+    )
+
+    print(f"  P50 (Median) Improvement: {p50_eip712_improvement:.2f}x faster")
+    print(f"  P95 Improvement: {p95_eip712_improvement:.2f}x faster")
+    print(f"  P99 Improvement: {p99_eip712_improvement:.2f}x faster")
