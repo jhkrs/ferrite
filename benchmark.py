@@ -1,5 +1,3 @@
-
-
 import time
 import numpy as np
 from eth_account import Account
@@ -16,12 +14,15 @@ MESSAGE_HASH = Account.sign_message(MESSAGE, KEY).message_hash
 
 # --- Benchmark Setup ---
 
+
 def get_original_signer():
     """
     Temporarily unpatch to get the original signing method.
     """
     import eth_account.account
+
     return eth_account.account.LocalAccount._sign_hash
+
 
 def benchmark_function(func, *args):
     """Measures execution time of a function."""
@@ -29,6 +30,7 @@ def benchmark_function(func, *args):
     func(*args)
     end = time.perf_counter()
     return (end - start) * 1000  # Return time in milliseconds
+
 
 def run_bench(name, target_func, *args):
     """Run warmup and sample collection for a given function."""
@@ -51,36 +53,32 @@ def run_bench(name, target_func, *args):
 
     return {"p50": p50, "p95": p95, "p99": p99}
 
+
 def benchmark_sign_hash(message_hash, private_key):
     """Benchmark function for signHash operation."""
     return Account._sign_hash(message_hash, private_key)
+
 
 # --- Main Execution ---
 
 if __name__ == "__main__":
     # 1. Benchmark original eth-account (before patching)
     eth_account_results = run_bench(
-        "Original eth-account",
-        benchmark_sign_hash,
-        MESSAGE_HASH,
-        KEY
+        "Original eth-account", benchmark_sign_hash, MESSAGE_HASH, KEY
     )
 
     # 2. Benchmark ferrite-patched eth-account (after patching)
     ferrite.install()
     ferrite_results = run_bench(
-        "Ferrite (Rust-accelerated)",
-        benchmark_sign_hash,
-        MESSAGE_HASH,
-        KEY
+        "Ferrite (Rust-accelerated)", benchmark_sign_hash, MESSAGE_HASH, KEY
     )
 
     # 3. Report improvements
     print("\n--- Performance Improvements (Ferrite vs. eth-account) ---")
 
-    p50_improvement = (eth_account_results['p50'] / ferrite_results['p50'])
-    p95_improvement = (eth_account_results['p95'] / ferrite_results['p95'])
-    p99_improvement = (eth_account_results['p99'] / ferrite_results['p99'])
+    p50_improvement = eth_account_results["p50"] / ferrite_results["p50"]
+    p95_improvement = eth_account_results["p95"] / ferrite_results["p95"]
+    p99_improvement = eth_account_results["p99"] / ferrite_results["p99"]
 
     print(f"  P50 (Median) Improvement: {p50_improvement:.2f}x faster")
     print(f"  P95 Improvement: {p95_improvement:.2f}x faster")
