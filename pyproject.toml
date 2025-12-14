@@ -38,7 +38,7 @@ current_version = "0.2.2"
 
 commit = true
 commit_args = "--no-verify"
-tag = false
+tag = true
 
 [[tool.bumpversion.files]]
 filename = "pyproject.toml"
