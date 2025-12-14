@@ -86,7 +86,9 @@ def _sign_typed_data_wrapper(self, full_message: Dict[str, Any]) -> SignedMessag
         raise
 
 
-def _account_sign_typed_data_wrapper(private_key: str, full_message: Dict[str, Any]) -> SignedMessage:
+def _account_sign_typed_data_wrapper(
+    private_key: str, full_message: Dict[str, Any]
+) -> SignedMessage:
     """Wraps the Rust-based sign_typed_data function for Account."""
     try:
         if isinstance(private_key, (bytes, bytearray)):
