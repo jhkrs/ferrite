@@ -1,24 +1,30 @@
-# Ferrite: High-performance eth-account signer
+# Ferrite: Rust patch for eth-account
 
 [![PyPI version](https://img.shields.io/pypi/v/ferrite)](https://pypi.org/project/ferrite)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python Versions](https://img.shields.io/pypi/pyversions/ferrite.svg)](https://pypi.org/project/ferrite/)
 [![Build Status](https://github.com/satoshiburger/ferrite/actions/workflows/build_wheels.yml/badge.svg)](https://github.com/satoshiburger/ferrite/actions)
 
-**High-performance Rust-based signer for eth-account**
+**High-performance Rust patch for eth-account**
 
-Ferrite is a Python module that dramatically accelerates Ethereum cryptographic operations by replacing the core signing logic in `eth-account` with a highly optimized Rust implementation.
+Ferrite is a Python module that accelerates Ethereum cryptographic operations by replacing the core signing logic in `eth-account` with a Rust implementation.
 
-Simply import the module, and your existing `eth-account` code will run significantly faster with zero code changes required.
-
----
 
 ## Key Features
 
-*   **Blazing Fast:** Up to 50x faster than the standard `eth-account` implementation.
+*   **Blazing Fast:** Up to 40x faster than the standard `eth-account` implementation.
 *   **Drop-in Replacement:** Just `import ferrite` at the start of your application. No code refactoring is needed.
 *   **Zero-Overhead:** The patch is applied once on import, with no performance penalty during runtime.
 *   **Reliable & Secure:** Built on top of the same production-grade cryptographic libraries used in the wider Rust-Ethereum ecosystem.
+
+## Performance
+
+| Operation | Standard (Python) | Ferrite (Rust) | Improvement |
+|-----------|------------------|----------------|-------------|
+| Sign Hash | ~3.29ms | ~0.11ms | ~30x faster |
+| Sign Typed Data (EIP-712) | ~3.61ms | ~0.14ms | ~26x faster |
+
+*Performance measured on a local development machine.*
 
 ## Installation
 
@@ -28,41 +34,10 @@ pip install ferrite
 
 ## Quickstart
 
-Import `ferrite` at the top of your application's entrypoint. The module will automatically "monkey patch" the `eth-account` library.
+1. Import `ferrite`.
+2. Run `ferrite.install()`.
 
-### Before Ferrite
-
-```python
-# your_app.py
-from eth_account import Account
-from eth_account.messages import encode_defunct
-
-private_key = "0x..." # Your private key
-account = Account.from_key(private_key)
-message = encode_defunct(text="hello world")
-
-signed_message = account.sign_message(message)
-
-print(f"Signature: {signed_message.signature.hex()}")
-```
-
-### After Ferrite
-
-```python
-# your_app.py
-import ferrite  # <-- Just add this one line at the top!
-
-from eth_account import Account
-from eth_account.messages import encode_defunct
-
-private_key = "0x..." # Your private key
-account = Account.from_key(private_key)
-message = encode_defunct(text="hello world")
-
-signed_message = account.sign_message(message)
-
-print(f"Signature: {signed_message.signature.hex()}")
-```
+---
 
 ## Development & Contribution
 
@@ -78,43 +53,24 @@ This project is built using `maturin`.
 
 1. **Clone the repository:**
     ```bash
-    git clone https://github.com/satoshiburger/ferrite.git
+    git clone https://github.com/jhkrs/ferrite.git
     cd ferrite
     ```
 
 2. **Development Installation:**
     ```bash
-    maturin develop
-    pip install pytest black mypy
+    pip install -r requirements.txt
     ```
 
-3. **Run Tests:**
+3. **Build:**
     ```bash
-    python -m pytest
-    cargo test
+    maturin develop
     ```
 
-## Project Structure
-
-```
-ferrite/
-├── __init__.py # Main module interface and monkey patching
-├── account.py  # Core patching logic for eth-account
-└── lib.rs      # Rust implementation
-```
-
-## Dependencies
-
-- `eth-account>=0.8.0,<0.9.0`
-
-## Performance
-
-| Operation | Standard (Python) | Ferrite (Rust) | Improvement |
-|-----------|------------------|----------------|-------------|
-| Sign Message | ~2.1ms | ~0.04ms | 50x faster |
-| Sign Hash | ~1.8ms | ~0.03ms | 60x faster |
-
-*Performance measured on Intel i7-9750H, single-threaded. Results may vary.*
+4. **Run Tests:**
+    ```bash
+    pytest
+    ```
 
 ## License
 

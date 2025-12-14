@@ -1,0 +1,4 @@
+maturin
+pytest
+black
+mypy

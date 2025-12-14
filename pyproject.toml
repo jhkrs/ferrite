@@ -5,7 +5,7 @@ build-backend = "maturin"
 [project]
 name = "ferrite"
 version = "0.2.0"
-description = "High-performance Rust-based signer for web3.py."
+description = "High-performance Rust patch for Python eth-account"
 authors = [{name = "Joseph Kinder", email = "joseph.kinder70@gmail.com"}]
 license = "MIT"
 readme = "README.md"
@@ -24,7 +24,6 @@ classifiers = [
     "Topic :: System :: Hardware :: Hardware Drivers",
 ]
 dependencies = [
-    "web3>=7.0.0",
     "eth-account>=0.8.0"
 ]
 
