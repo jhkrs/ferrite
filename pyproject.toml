@@ -36,7 +36,7 @@ Issues = "https://github.com/satoshiburger/ferrite/issues"
 [tool.bumpversion]
 current_version = "0.2.1"
 
-commit = false
+commit = true
 tag = false
 
 [[tool.bumpversion.files]]
