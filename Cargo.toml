@@ -10,7 +10,7 @@ path = "ferrite/lib.rs"
 
 [dependencies]
 # PyO3 for Python bindings
-pyo3 = { version = "0.20", features = ["extension-module"] }
+pyo3 = { version = "0.20", features = ["extension-module", "abi3"] }
 
 # Ethers for battle-tested Ethereum primitives
 ethers-core = "2.0.10"
