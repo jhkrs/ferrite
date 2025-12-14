@@ -59,8 +59,6 @@ def _account_sign_hash_wrapper(message_hash: bytes, private_key: str) -> SignedM
         )
     except Exception as e:
         log.error(f"Error in Rust signing operation (Account adapter): {e}")
-    except Exception as e:
-        log.error(f"Error in Rust signing operation (Account adapter): {e}")
         raise
 
 
