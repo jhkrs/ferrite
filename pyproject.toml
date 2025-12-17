@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "ferrite"
-version = "0.2.3"
+version = "0.2.4"
 description = "High-performance Rust patch for Python eth-account"
 authors = [{name = "Joseph Kinder", email = "joseph.kinder70@gmail.com"}]
 license = "MIT"
@@ -34,7 +34,7 @@ Documentation = "https://github.com/satoshiburger/ferrite/blob/main/README.md"
 Issues = "https://github.com/satoshiburger/ferrite/issues"
 
 [tool.bumpversion]
-current_version = "0.2.3"
+current_version = "0.2.4"
 
 commit = true
 commit_args = "--no-verify"
