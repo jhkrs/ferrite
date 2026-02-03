@@ -14,7 +14,7 @@ pyo3 = { version = "0.20", features = ["extension-module", "abi3"] }
 
 # Ethers for battle-tested Ethereum primitives
 ethers-core = "2.0.10"
-ethers-signers = "2.0.10"
+ethers-signers = { version = "2.0.10", default-features = false }
 
 # Hex for string-to-bytes conversion
 hex = "0.4.3"

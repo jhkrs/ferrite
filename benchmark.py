@@ -44,6 +44,15 @@ EIP712_EXAMPLE = {
     },
 }
 
+TRANSACTION = {
+    "to": "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC",
+    "value": 1000000000000000000,
+    "gas": 21000,
+    "gasPrice": 1000000000,
+    "nonce": 0,
+    "chainId": 1,
+}
+
 # --- Benchmark Setup ---
 
 
@@ -96,6 +105,11 @@ def benchmark_sign_typed_data(data, private_key):
     return Account.sign_typed_data(private_key, full_message=data)
 
 
+def benchmark_sign_transaction(tx, private_key):
+    """Benchmark function for sign_transaction operation."""
+    return Account.sign_transaction(tx, private_key)
+
+
 # --- Main Execution ---
 
 if __name__ == "__main__":
@@ -105,6 +119,12 @@ if __name__ == "__main__":
     )
     eth_account_eip712_results = run_bench(
         "Original eth-account (EIP-712)", benchmark_sign_typed_data, EIP712_EXAMPLE, KEY
+    )
+    eth_account_tx_results = run_bench(
+        "Original eth-account (Transaction)",
+        benchmark_sign_transaction,
+        TRANSACTION,
+        KEY,
     )
 
     # 2. Benchmark ferrite-patched eth-account (after patching)
@@ -116,6 +136,12 @@ if __name__ == "__main__":
         "Ferrite (Rust-accelerated) (EIP-712)",
         benchmark_sign_typed_data,
         EIP712_EXAMPLE,
+        KEY,
+    )
+    ferrite_tx_results = run_bench(
+        "Ferrite (Rust-accelerated) (Transaction)",
+        benchmark_sign_transaction,
+        TRANSACTION,
         KEY,
     )
 
@@ -144,3 +170,12 @@ if __name__ == "__main__":
     print(f"  P50 (Median) Improvement: {p50_eip712_improvement:.2f}x faster")
     print(f"  P95 Improvement: {p95_eip712_improvement:.2f}x faster")
     print(f"  P99 Improvement: {p99_eip712_improvement:.2f}x faster")
+
+    print("\n--- Performance Improvements (Transaction) ---")
+    p50_tx_improvement = eth_account_tx_results["p50"] / ferrite_tx_results["p50"]
+    p95_tx_improvement = eth_account_tx_results["p95"] / ferrite_tx_results["p95"]
+    p99_tx_improvement = eth_account_tx_results["p99"] / ferrite_tx_results["p99"]
+
+    print(f"  P50 (Median) Improvement: {p50_tx_improvement:.2f}x faster")
+    print(f"  P95 Improvement: {p95_tx_improvement:.2f}x faster")
+    print(f"  P99 Improvement: {p99_tx_improvement:.2f}x faster")

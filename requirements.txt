@@ -2,3 +2,4 @@ maturin
 pytest
 black
 mypy
+numpy
